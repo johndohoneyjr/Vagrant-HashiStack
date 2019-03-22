@@ -1,0 +1,16 @@
+[Unit]
+Description=Consul
+Documentation=https://consul.io/docs/
+
+[Service]
+Restart=on-failure
+ExecStartPre=/bin/bash -c "/bin/systemctl set-environment CONSUL_ADDR=$(ifconfig eth0 | grep 'inet addr' | cut -d ':' -f 2 | cut -d ' ' -f 1)"
+ExecStart=/bin/consul agent -config-file /consul/client.json -bind ${CONSUL_ADDR} 
+ExecReload=/bin/kill -HUP $MAINPID
+LimitNOFILE=65536
+KillSignal=SIGTERM
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

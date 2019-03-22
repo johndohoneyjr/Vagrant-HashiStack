@@ -1,0 +1,69 @@
+{
+  "variables": {
+    "ubuntu_vm_name": "ubuntu-16.04-docker",
+    "cpu": "2",
+    "ram": "1024",
+    "disk": "40960",
+    "iso_url": "http://releases.ubuntu.com/16.04/ubuntu-16.04.5-server-amd64.iso",
+    "iso_checksum": "24636fd103a2a43c95659f1c3c63718e",
+    "iso_checksum_type": "md5",
+    "user": "packer",
+    "pass": "packer"
+  },
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "guest_os_type": "Ubuntu_64",
+      "vm_name": "{{user `ubuntu_vm_name`}}",
+      "disk_size": "{{user `disk`}}",
+      "headless": false,
+      "http_directory": ".",
+      "ssh_wait_timeout": "30m",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "ssh_username": "{{user `user`}}",
+      "ssh_password": "{{user `pass`}}",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "{{user `ram`}}"],
+        ["modifyvm", "{{.Name}}", "--cpus", "{{user `cpu`}}"]
+      ],
+      "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+      "boot_command": [
+        "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US<wait>",
+        " netcfg/get_domain=vm<wait>",
+        " netcfg/get_hostname=ubuntu<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
+        " -- <wait>",
+        "<enter><wait>"
+      ] 
+    }
+  ],
+  "provisioners": [
+      {
+          "type": "shell",
+          "execute_command": "echo 'packer' | sudo -S -E sh {{.Path}}",
+          "scripts": [
+            "./provision.sh"
+          ]
+      }
+  ]
+}
